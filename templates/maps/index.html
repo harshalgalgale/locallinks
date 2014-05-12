@@ -1,0 +1,99 @@
+{% extends 'maps/base.html' %}
+
+{% load static %}
+
+{% block body_block %}
+
+<div class="row">
+	<div id="window" class="col-md-8 col-md-push-4">
+	</div>
+	<div class="col-md-4 col-md-pull-8"  id="place_description">
+		<h1>Welcome!</h1>
+		<p class="lead">Click on a pin to find out what people think about what's going on in Tower Hamlets.</p>
+	</div>
+</div>
+
+{% endblock %}
+
+{% block scripts_block %}
+
+<script>
+	
+	var centrelon = {{ map.lon }};
+	var centrelat = {{ map.lat }};
+	
+	{% get_static_prefix as STATIC_PREFIX %}
+
+	// Create icons for each type of place
+	{% for type in types %}
+	var {{ type.title|lower }}Icon = L.icon({
+    	iconUrl: '{{ STATIC_PREFIX }}img/icons/{{ type.title|lower }}.png',
+    	iconSize:     	[29, 40],
+    	iconAnchor:   	[14, 20],
+    	popupAnchor:	[0, -20]
+	});
+	{% endfor %}
+
+
+	// Group places by layer, add to map
+
+	{% for layer, place_list in layers.items %}
+		// Create layerGroup {{ layer|lower }}
+		var {{ layer|lower }} = L.layerGroup();
+		{% for place in place_list %}
+			var {{ layer|lower }}_{{ forloop.counter0 }} = L.marker([{{ place.lat }}, {{ place.lon }}], {icon: {{ place.type|lower }}Icon}).on('click', onClick_{{ layer|lower }}_{{ forloop.counter0 }}).bindPopup('{{ place.title }}');
+			function onClick_{{ layer|lower }}_{{ forloop.counter0 }}(e) {
+				title = "{{ place.title }}";
+				url = '{{ place.local_url }}';
+				$.get(url + '/', function( data ) {
+   					$( "#place_description" ).html( data );
+   				});
+   			}
+			{{ layer|lower }}.addLayer({{ layer|lower }}_{{ forloop.counter0 }});
+		{% endfor %}
+	{% endfor %}
+
+	var watercolor = new L.StamenTileLayer("watercolor");
+	var streets = new L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+    maxZoom: 18
+	});
+	
+	var baseMaps = {
+		"Pretty": watercolor,
+		"Useful": streets
+	};
+	
+	var map = L.map('window', {
+		center: new L.LatLng(centrelon, centrelat),
+		zoom: 14,
+		layers: [{% for layer in layers %} {{ layer|lower }},{% endfor %} watercolor],
+		zoomControl: false,
+	});
+	
+	// map.addLayer(watercolor);
+	// map.addLayer(streets);
+	
+	// Create layer overlay object
+	
+	var overlayMaps = {
+		{% for layer in layers %}"{{ layer }}": {{ layer|lower }},{% endfor %}
+	};
+	
+	
+	// Add layer control
+	
+	L.control.layers(baseMaps, overlayMaps, {
+		collapsed: false, 
+		position: 'bottomright'
+	}).addTo(map);
+	
+	
+	// Add zoom control
+	L.control.zoom({
+		position: 'topright',
+	}).addTo(map);
+	
+</script>
+
+{% endblock %}

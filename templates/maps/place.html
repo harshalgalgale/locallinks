@@ -1,0 +1,112 @@
+		<div>
+			<div id="like_button" class="pull-right">
+				 {% if not has_liked %}
+				 <button id="likes" data-placeid="{{ place.id }}" class="btn btn-xs btn-primary" type="button">Like</button>
+				 {% else %}
+				 	
+				 {% endif %}
+				 <span id="like_count">{{ place.likes }}</span> <span class="glyphicon glyphicon-star"></span>
+			</div>
+			<h3>{{ place.title }}</h3>
+	
+
+		
+		<div class="address row">
+			<div class="col-md-6">	
+														{% if place.thumbnail %}
+						<img src="media/{{ place.thumbnail }}" alt="" class="img-thumbnail">
+						{% else %}
+						<img src="http://lorempixel.com/140/140/city" alt="" class="img-thumbnail">
+						{% endif %}
+			</div>
+			<div class="col-md-6">
+							<p><small>{{ place.address_1 }}<br />
+							{% if place.address_2 %}
+								{{ place.address_2 }}<br />
+							{% endif %}
+							{% if place.address_3 %}
+								{{ place.address_3 }}<br />
+							{% endif %}
+							{{ place.city }}<br />
+								{{ place.postcode|upper }}</small></p>
+							<p><small>{% if place.phone %}{{ place.phone }}<br />{% endif %}
+							{% if place.email %}
+								{{ place.email|urlizetrunc:30 }}<br />
+							{% endif %}
+							{% if place.url %}
+								{{ place.url|urlizetrunc:30 }}
+							{% endif %}
+							</small></p>
+						</div>
+				</div>
+		
+		</div>
+		<ul class="nav nav-pills" id="placeTabs">
+  			<li class="active" data-toggle="tab"><a href="#about">About</a></li>
+  			<li><a href="#people" data-toggle="tab">People</a></li>
+  			<!---<li><a href="#why" data-toggle="tab">Why visit?</a></li>
+  			<li><a href="#tags" data-toggle="tags">Tags</a></li>
+  			<li><a href="#more" data-toggle="tags">More</a></li>-->
+		</ul>
+		<div class="tab-content detail">
+			<div class="tab-pane active" id="about">
+				<h4>What people are saying</h4>
+				<div id="quotes">
+				{% for quote in quotes %}
+					<div class="panel panel-default">
+						<div class="panel-body">
+							{{ quote.text }}
+						</div>
+					</div>
+				{% endfor %}
+				</div>
+			</div>
+			<div class="tab-pane" id="people">
+				<h4>Who to look for</h4>
+				<div id="roles">
+				{% for role in roles %}
+				<div class="panel panel-default">
+					<div class="panel-body">
+						<span class="glyphicon glyphicon-user"></span><strong>
+{{ role.person }}:</strong> "{{ role.text }}"
+					</div>
+				</div>
+				{% endfor %}
+				</div>
+			</div>
+			<!--<div class="tab-pane" id="why">
+			</div>
+			<div class="tab-pane" id="tags">
+			</div>
+			<div class="tab-pane" id="more">
+			</div>-->
+		</div>
+
+{% block scripts_block %} 
+   	<script>
+		$('#placeTabs a').click(function (e) {
+			e.preventDefault()
+			$(this).tab('show')
+		})
+		
+		$(document).ready(function(){
+			$('#quotes').slimScroll({
+				height: '70%'
+			});
+		});
+		
+		$(document).ready(function() {
+		
+		$('#likes').click(function(){
+			var placeid;
+			placeid = $(this).attr("data-placeid");
+			$.get('/like_place/', {place_id: placeid}, function(data){
+				$('#like_count').html(data);
+				$('#likes').hide();
+			});
+		});
+		
+		});
+	</script>
+
+{% endblock %}

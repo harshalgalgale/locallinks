@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+
+{% load static %}
+
+<html>
+	<head>
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title>Local Links</title>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
+		<script src="{% static 'js/jquery.slimscroll.min.js' %}"></script>
+		<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
+		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+		<link href="http://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
+<link href="http://fonts.googleapis.com/css?family=Cabin" rel="stylesheet" type="text/css">
+<script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
+<script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.4"></script>
+		<style>
+			body { 	
+				padding-top: 50px; 
+				height: 100%;		
+			}
+			html {
+				height: 100%;
+			}
+			#window {
+				height: 100%;
+			}
+			.container-fluid, .container-fluid > .row {
+				height: 100%;
+			}
+			#place_description {
+				height: 80%;
+			}
+			.detail {
+				height: 90%;
+			}
+			#about {
+				height: 100%;
+			}
+			#quotes {
+				height: 60%;
+				overflow-y: scroll;
+			}
+			.tab-content {
+				margin-top: 20px;
+			}
+			h1, h2, h3, h4 {
+    			font-family: 'Lobster', Helvetica, Arial, sans-serif;
+			}
+			body, .leaflet-container {
+				font-family: 'Cabin';
+			}
+			.navbar-brand {
+				font-family: 'Lobster';
+				color: #d17442 !important;
+			} 
+			.navbar-brand:hover {
+				color: #d9cc3c !important;
+			}
+			a {
+				color: #00ada7;
+			}
+			.address {
+				height: 180px;
+			}
+			/* tab color */
+			.nav-pills>li>a { 
+  				border-color: #c1c1c1;
+			}
+
+/* active tab color */
+.nav-pills>li.active>a, .nav-pills>li.active>a:hover, .nav-pills>li.active>a:focus {
+  background-color: #c24704;
+}
+
+/* hover tab color */
+.nav-pills>li>a:hover {
+  background-color: #c24704;
+  color: white;
+}
+		</style>
+	</head>
+
+	<body>
+		<nav class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+			<div class="container-fluid">
+				<div class="navbar-header">
+			    	<button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+        				<span class="sr-only">Toggle navigation</span>
+        				<span class="icon-bar"></span>
+        				<span class="icon-bar"></span>
+        				<span class="icon-bar"></span>
+      				</button>
+      				<a class="navbar-brand" href="{% url 'index' %}">Local Links in Tower Hamlets</a>
+   				</div>
+   				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+     				<ul class="nav navbar-nav">
+        				{% for page in nav %}
+        					<li><a href="{% url 'page' page.local_url %}">{{ page.title }}</a></li>
+        				{% endfor %}
+        				
+        			</ul>
+					<form class="navbar-form navbar-right" role="search" action="/search/">
+	  					<div class="form-group">
+				    		<input name="q" type="text" class="form-control input-sm" placeholder="Search" id="searchfield">
+						</div>
+				  		<button type="submit" class="btn btn-sm" id="search">Submit</button>
+					</form>
+				</div>
+			</div>
+		</nav>
+		<div class="container-fluid">			
+					{% block body_block %} {% endblock %}
+				
+			
+		</div>
+	    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+	    <script>
+		$(document).ready(function() {
+	    	
+	    	function search() {
+	    		var q=$('#searchfield').val();
+	    		$.get('/search/?q', {q: q}, function(data) {
+	    			$('#place_description').html(data)
+	    		});
+	    	}
+	    	
+	    	$('#search').click(function(e) {
+	    		e.preventDefault();
+	    		search();
+	    	});
+	    	
+	    	$('#search').submit(function(e) {
+	    		e.preventDefault();
+	    		search();
+	    	});
+	    });	
+	    </script>
+	    	{% block scripts_block %} {% endblock %}
+	    
+	    	
+	</body>
+</html>
