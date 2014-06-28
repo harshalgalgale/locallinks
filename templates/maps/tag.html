@@ -1,0 +1,132 @@
+{% extends 'maps/base.html' %}
+
+{% load static %}
+
+{% block body_block %}
+<div class="container-fluid full-height">
+	<div class="row full-height">
+		<div id="window" class="col-md-8 col-md-push-4">
+		</div>
+		<div class="col-md-4 col-md-pull-8"  id="place_description">
+			<h1>Places Tagged '{{ tag|capfirst }}'</h1>
+			<br />
+		{% for place in places %}
+		<div class="media">
+			<a class="pull-left" href="{% url 'single' place.local_url %}">
+			{% if place.thumbnail %}
+				{% load cropping %}
+				<img src="{% cropped_thumbnail place "cropping" scale=1 %}" alt="{{ place.title }} thumbnail" class="img-thumbnail">
+			{% else %}
+				<img src="{% static 'img/image_placeholder.gif' %}" alt="{{ place.title }} thumbnail" class="img-thumbnail">
+			{% endif %}
+			</a>	
+			<div class="media-body">
+				<a href="{% url 'single' place.local_url %}"><h4 class="media-heading">{{ place.title }}</h4></a>
+				<p><em>{{ place.description }}</em></p>
+				<p><small>{{ place.tags.name }}</small></p>
+			</div>
+		</div>
+		{% endfor %}
+		</div>
+	</div>
+
+{% endblock %}
+
+{% block scripts_block %}
+
+<script>
+	
+	$(document).ready(function() {
+		$(document).delegate('*[data-toggle="lightbox"]', 'click', function(event) { event.preventDefault(); $(this).ekkoLightbox(); }); 
+	});
+	
+	var centrelon = {{ map.lon }};
+	var centrelat = {{ map.lat }};
+	
+	{% get_static_prefix as STATIC_PREFIX %}
+
+	
+	// Create icons for each layer
+	
+	{% for layer in layers %}
+	// {{ layer.title }}
+	var {{ layer.title|lower}}Icon = L.icon({
+		iconUrl: '{{ STATIC_PREFIX }}img/icons/pins_0{{ forloop.counter }}.png',
+    	iconSize:     	[24, 34],
+    	iconAnchor:   	[12, 34],
+    	popupAnchor:	[0, -34]
+	});
+	{% endfor %}
+
+
+	// Group places by layer, add to map
+	
+	{% for layer, place_list in layers.items %}
+		// Create layerGroup {{ layer|lower }}
+		var {{ layer|lower }} = L.layerGroup();
+		
+		{% for place in place_list %}
+		{% if place %}
+			var {{ layer|lower }}_{{ forloop.counter0 }} = L.marker([{{ place.lat }}, {{ place.lon }}], {icon: {{ place.layer|lower }}Icon}).on('click', onClick_{{ layer|lower }}_{{ forloop.counter0 }}).bindPopup('{{ place.title }}');
+			function onClick_{{ layer|lower }}_{{ forloop.counter0 }}(e) {
+				// title = "{{ place.title }}";
+				url = '../../../place/{{ place.local_url }}';
+				$.get(url + '/', function( data ) {
+   					$( "#place_description" ).html( data );
+   				});
+   			}
+			{{ layer|lower }}.addLayer({{ layer|lower }}_{{ forloop.counter0 }});
+		{% else %}
+		
+		{% endif %}
+		{% endfor %}
+		
+	{% endfor %}
+	
+	
+	
+	var watercolor = new L.StamenTileLayer("watercolor");
+	var streets = new L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+    maxZoom: 18
+	});
+	
+	var baseMaps = {
+		"Pretty": watercolor,
+		"Useful": streets
+	};
+	
+	var map = L.map('window', {
+		center: new L.LatLng(centrelon, centrelat),
+		zoom: 13,
+		layers: [{% for layer in layers %} {{ layer|lower }},{% endfor %} watercolor],
+		zoomControl: false,
+	});
+	
+	// Create layer overlay object
+	
+	var overlayMaps = {
+		{% for layer in layers %}"{{ layer.description }}": {{ layer|lower }},{% endfor %}
+	};
+	
+	
+	// Add layer control
+	
+	L.control.layers(baseMaps, overlayMaps, {
+		collapsed: true, 
+		position: 'bottomright'
+	}).addTo(map);
+	
+	
+	// Add zoom control
+	L.control.zoom({
+		position: 'topright',
+	}).addTo(map);
+	
+	//$(document).ready(function() {
+	//	$('.leaflet-marker-icon').modal({ show: false});		
+	//});
+	
+</script>
+
+{% endblock %}

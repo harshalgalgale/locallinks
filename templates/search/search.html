@@ -13,7 +13,7 @@
 			{% endif %}</a>
 					
 					<div class="media-body">
-						<a href="place/single/{{ result.object.local_url }}"><h4 class="media-heading">{{ result.object.title }}</h4></a>
+						<a href="{% url 'single' result.object.local_url %}"><h4 class="media-heading">{{ result.object.title }}</h4></a>
 						<p><em>{{ result.object.description }}</em></p>
 					</div>
 				</div>

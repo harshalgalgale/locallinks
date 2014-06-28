@@ -93,7 +93,7 @@ def single(request, place_title_url):
 	except place.DoesNotExist:
 		pass
 	
-	return render_to_response('maps/single_new.html', context_dict, context)
+	return render_to_response('maps/single.html', context_dict, context)
 
 
 def place(request, place_title_url):

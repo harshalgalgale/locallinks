@@ -1,3 +1,0 @@
-{{ object.firstname }}
-{{ object.lastname }}
-{{ object.bio }}

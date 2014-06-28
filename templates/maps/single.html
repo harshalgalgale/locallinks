@@ -4,55 +4,74 @@
 
 {% block body_block %}
 <div class="container-fluid full-height">
-<div class="row">
-	<div id="window" class="col-md-8 col-md-push-4">
-	</div>
-	<div class="col-md-4 col-md-pull-8"  id="place_description">
-				<div>
-
-<div class="place-header well well-lg">
-			{% if place.thumbnail %}
-				{% load cropping %}
-				<img src="{% cropped_thumbnail place "cropping" scale=1 %}" alt="" class="img-thumbnail img-responsive pull-left">
-			{% else %}
-				<img src="http://lorempixel.com/64/64/city" alt="" class="img-thumbnail img-responsive pull-left">
-			{% endif %}	
-			<div class="place-title">
-				<div id="like_button" class="pull-right">
-					{% if not has_liked %}
-				 	<button id="likes" data-placeid="{{ place.id }}" class="btn btn-xs btn-primary" type="button">Like</button>
-				 	{% else %}
-				 	
-				 	{% endif %}
-				 	<span id="like_count">{{ place.likes }}</span> <span class="glyphicon glyphicon-star" style="color:#C24704"></span>
-				</div>
-				<h3>{{ place.title }}</h3>
-				{% if place.description %}
-				<p>{{ place.description }}</p>
-				{% else %}
-				<p>Place description</p>
-				{% endif %}
-			</div>
+	<div class="row full-height">
+		<div id="window" class="col-md-8 col-md-push-4">
 		</div>
+		<div class="col-md-4 col-md-pull-8"  id="place_description">
+				<br />
+		<div class="place-header well well-lg">
+			<div class="media">
+				{% if place.thumbnail %}
+					{% load cropping %}
+					<img src="{% cropped_thumbnail place "cropping" scale=1 %}" alt="{{ place.title }} thumbnail" class="img-thumbnail pull-left">
+				{% else %}
+					{% load static %}
+					<img src="{% static 'img/image_placeholder.gif' %}" alt="{{ place.title }} thumbnail" class="img-thumbnail  pull-left">
+				{% endif %}
+				<div class="media-body">
+					<div class="place-title">
+						<p class="pull-right"><span id="like_count">{{ place.likes }}</span> <span class="glyphicon glyphicon-star" style="color:#C24704"></span></p>
+						<div id="like_button" class="pull-right">
+				 		{% if not has_liked %}
+				 		<button id="likes" data-placeid="{{ place.id }}" class="btn btn-xs btn-primary" type="button">Like</button>
+				 		{% else %}
+					 	
+				 		{% endif %}
+				 		</div>
+						<h3>{{ place.title }}</h3>
+						
+						{% if place.description %}
+						<p><em>{{ place.description }}</em></p>
+						{% else %}
+						<p>Place description</p>
+						{% endif %}
+						<!--<div><span class="{{ layer.title|lower }}"></span><p><small>{{ layer.description }}</small></p></div>-->
+				 		<p><small><strong>Tags: </strong>{% for tag in tags %}<a href="{% url 'tag' tag|slugify %}">{{ tag }}</a> {% endfor %}</small></p>
+						</div>
+					</div>
+				</div>
+			</div>
 
 		<ul class="nav nav-pills" id="placeTabs">
-			<li class="active"><a href="#talk">Talk</a></li>
-  			<li><a href="#people">People</a></li>
-  			<li><a href="#photos">Photos</a></li>
-  			<li><a href="#activities">What's on</a></li>
-  			<li><a href="#contact">Contact</a></li>
+			{% if quotes %}
+			<li class="active"><a href="#talk"><span class="glyphicon glyphicon-home"></span></a></li>
+			{% endif %}
+			{% if photos %}
+  			<li><a href="#photos"><span class="glyphicon glyphicon-camera"></span></a></li>
+  			{% endif %}
+  			{% if activities %}
+  			<li{% if not quotes %} class="active" {% endif %}><a href="#activities">What's on <span class="badge">{{ activities|length }}</span></a></li>
+  			{% endif %}
+  			<li class="dropdown">
+    			<a class="dropdown-toggle" data-toggle="dropdown" href="#">More <span class="caret"></span></a>
+    			<ul class="dropdown-menu">
+  					<li><a href="#contact">Contact details</a></li>
+  					{% if similar %}
+  					<li class="divider"></li>
+  					<li><a href="#similar">Other places like this</a></li>
+  					{% endif %}
+  				</ul>
+  			</li>
 		</ul>
 
 		<div class="tab-content detail">
 
-			<div class="tab-pane active" id="talk">
-				<h3>What people are saying</h3>
+			<div class="tab-pane {% if quotes %}active{% endif %}" id="talk">
+				<h3>What You Said</h3>
 				<div id="quotes" class="scroll">
 				{% for quote in quotes %}
-					<div class="panel panel-default">
-						<div class="panel-body">
-							<span class="glyphicon glyphicon-user"></span> '{{ quote.text }}'
-						</div>
+					<div class="bubble">
+						<span class="glyphicon glyphicon-user"></span> '{{ quote.text }}'
 					</div>
 				{% endfor %}
 				</div>
@@ -60,7 +79,7 @@
 			
 			<div class="tab-pane" id="contact">
 			
-			<h3>Contact</h3>
+			<h3>Contact Details</h3>
 			<div id="description" class="scroll">
 					<address>
 						{{ place.title }}<br />
@@ -83,68 +102,65 @@
 						{% if place.url %}
 						<strong>Web:</strong>	{{ place.url|urlizetrunc:30 }}<br />
 						{% endif %}
+						{% if place.directory_url %}
+						<strong>Idea Store Directory:</strong> {{ place.directory_url|urlizetrunc:30 }}<br />
+						{% endif %}
 					</address>
 				</div>
 			
 			</div>
 
-			<div class="tab-pane" id="people">
-				<h3>Who to look for</h3>
-				<div id="roles" class="scroll">
-				{% for role in roles %}
-				<div class="panel panel-default">
-					<div class="panel-body">
-						<span class="glyphicon glyphicon-user"></span><strong>
-{{ role.person }}:</strong> {{ role.text }}
-					</div>
-				</div>
-				{% endfor %}
-				</div>
-			</div>
-
-			<div class="tab-pane" id="activities">
-				<h3>What's on</h3>
-				<div id="activities" class="scroll">
-				{% for activity in activities %}
+			<div class="tab-pane {% if not quotes %}active{% endif %}" id="activities">
+				<h3>What's On</h3>
+				<div class="scroll">
+					{% for activity, activityquotes in activities.items %}
 					<div class="panel panel-default">
 						<div class="panel-heading">
-							<h5 class="panel-title">{{ activity.title }}</h5>
+							<h4 class="panel-title">{{ activity.title }}</h4>
+							<p><small>{{ activity.description }}</small></p>
 						</div>
 						<div class="panel-body">
-							<p><strong>When:</strong> {{ activity.time }}</p>
-							<p><strong>What:</strong> {{ activity.description }}</p>
-							{% if activity.url %}
-								<p>{{ activity.url|urlizetrunc:30 }}</p>
-							{% endif %}
+							{% for activityquote in activityquotes %}
+						<div class="bubble">
+							<span class="glyphicon glyphicon-user"></span> '{{ activityquote.text }}'
 						</div>
-					</div>	
+						{% endfor %}
+					</div>
+				</div>
 				{% endfor %}
 				</div>
 			</div>
 			
 			<div class="tab-pane" id="photos">
 				<h3>Photos</h3>
-				<div class="row">
-  					<div class="col-xs-6 col-md-3">
-    					<a href="#" class="thumbnail">
-    					<img src="http://lorempixel.com/64/64/city" alt=""></a>
-  					</div>
-  					<div class="col-xs-6 col-md-3">
-    					<a href="#" class="thumbnail">
-    					<img src="http://lorempixel.com/64/64/nature" alt=""></a>
-  					</div>
-  					<div class="col-xs-6 col-md-3">
-    					<a href="#" class="thumbnail">
-    					<img src="http://lorempixel.com/64/64/sports" alt=""></a>
-  					</div>
-  					<div class="col-xs-6 col-md-3">
-    					<a href="#" class="thumbnail">
-    					<img src="http://lorempixel.com/64/64/animals" alt=""></a>
-  					</div>
-				</div>
+					{% load thumbnail %}
+					<div class="row">
+						{% for photo in photos %}
+						<div class="col-xs-6 col-md-3">
+    						<a href="media/{{ photo.photo }}" data-toggle="lightbox" class="thumbnail" data-title="{{ photo.alt }}"><img src="{% thumbnail photo.photo 64x64 box=photo.cropping crop detail %}" alt="{{ photo.alt }}" /></a>
+						</div>
+						{% endfor %}
+					</div>
 			</div>
-		<a href="/" class="btn btn-primary btn-large">Show all places</a>
+			
+			<div class="tab-pane" id="similar">
+			<h3>Other Places Like This</h3>
+			<div class="media">
+			{% for i in similar %}
+				
+			{% load cropping %}
+			<img src="{% cropped_thumbnail i "cropping" scale=1 %}" alt="" class="img-thumbnail pull-left">	
+				<div class="media-body">	
+				<a href="../{{ i.local_url }}"><h4 class="media-heading">{{ i.title }}</h4></a>
+				<p><em>{{ i.description }}</em></p>
+				</div>
+			{% endfor %}
+			</div>
+			
 		</div>
+	</div>
+</div>
+
 
 
 {% endblock %}
@@ -153,67 +169,108 @@
 
 <script>
 	
+	
 	$('#placeTabs a').click(function (e) {
-		e.preventDefault()
-		$(this).tab('show')
-	})
-		
-	//$(document).ready(function(){
-	//	$('#quotes').slimScroll({
-	//		height: '70%'
-	//	});
-	//});
+			e.preventDefault()
+			$(this).tab('show')
+		});
 		
 	$(document).ready(function() {
-		
-	$('#likes').click(function(){
-		var placeid;
-		placeid = $(this).attr("data-placeid");
-		$.get('/like_place/', {place_id: placeid}, function(data){
-			$('#like_count').html(data);
-			$('#likes').fadeOut( "slow ");
+		$('#likes').click(function(){
+			var placeid;
+			placeid = $(this).attr("data-placeid");
+			$.get('/like_place/', {place_id: placeid}, function(data){
+				$('#like_count').html(data);
+				$('#likes').hide();
+			});
 		});
 	});
-		
+	
+	
+	$(document).ready(function() {
+		$(document).delegate('*[data-toggle="lightbox"]', 'click', function(event) { event.preventDefault(); $(this).ekkoLightbox(); }); 
 	});
 	
-	var centrelat = {{ place.lat }};
 	var centrelon = {{ place.lon }};
+	var centrelat = {{ place.lat }};
 	
 	{% get_static_prefix as STATIC_PREFIX %}
-
-	// Create icon
+	
+	// Create icons for each layer
 	
 	{% for layer in layers %}
 	// {{ layer.title }}
 	var {{ layer.title|lower}}Icon = L.icon({
 		iconUrl: '{{ STATIC_PREFIX }}img/icons/pins_0{{ forloop.counter }}.png',
     	iconSize:     	[24, 34],
-    	iconAnchor:   	[14, 22],
-    	popupAnchor:	[-1, -20]
+    	iconAnchor:   	[12, 34],
+    	popupAnchor:	[0, -34]
 	});
 	{% endfor %}
-
-	// Add Stamen tileset
-
-	var tiles = new L.StamenTileLayer("watercolor");
+	
+	// Create layers
+	
+	{% for layer in layers %}
+	var {{ layer.title|lower }} = L.layerGroup();
+	{% endfor %}
+	
+	var watercolor = new L.StamenTileLayer("watercolor");
+	var streets = new L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+    maxZoom: 18
+	});
+	
+	// Create layer overlays
+	
+	var overlayMaps = {
+		{% for layer in layers %}"{{ layer.description }}": {{ layer|lower }},{% endfor %}
+	};
+	
+	var baseMaps = {
+		"Pretty": watercolor,
+		"Useful": streets
+	};
 	
 	var map = L.map('window', {
 		center: new L.LatLng(centrelat, centrelon),
-		zoom: 14,
+		zoom: 16,
+		layers: watercolor,
 		zoomControl: false,
 	});
-	
-	map.addLayer(tiles);
-	
+		
+	// Put single pin on the map
+
+	var marker = L.marker([{{ place.lat }}, {{ place.lon }}], {icon: {{ place.layer|lower }}Icon}).addTo(map).bindPopup("{{ place.title }}").openPopup();
+
 	// Add zoom control
 	L.control.zoom({
 		position: 'topright',
 	}).addTo(map);
+
+	// Add layer control
+
+	L.control.layers(baseMaps, overlayMaps, {
+		collapsed: true, 
+		position: 'bottomright'
+	}).addTo(map);
 	
-	// Add marker
+	// Add 'show all places' button
 	
-	var marker = L.marker([{{ place.lat }}, {{ place.lon }}], {icon: {{ place.layer|lower }}Icon}).bindPopup('{{ place.title }}').addTo(map);
+	var MyControl = L.Control.extend({
+    	options: {
+     	   position: 'bottomleft'
+    	},
+
+    	onAdd: function (map) {
+    	    // create the control container with a particular class name
+    	    this._div = L.DomUtil.create('div', 'showbutton');
+			this._div.innerHTML = '<a href="/" class="btn btn-primary btn-large">Show all places</a>';
+        	return this._div;
+    	}
+	});
+
+	map.addControl(new MyControl());
+
 	
 </script>
 
