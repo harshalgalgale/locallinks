@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django import forms
 from maps.models import Map, Layer, Place, City, Quote, Page, Activity, Photo, ActivityQuote
 from image_cropping import ImageCroppingMixin
 
@@ -21,11 +22,11 @@ class ActivityQuoteInline(admin.TabularInline):
 	model = ActivityQuote
 	fk_name = "place"
 	
-	def formfield_for_foreignkey(self, db_field, request, **kwargs):
+	"""def formfield_for_foreignkey(self, db_field, request, **kwargs):
 		place = request.META['PATH_INFO'].strip('/').split('/')[-1]
 		if db_field.name == 'activity':
 			kwargs["queryset"] = Activity.objects.filter(place=place)
-		return super(ActivityQuoteInline, self).formfield_for_foreignkey(db_field, request, **kwargs)
+		return super(ActivityQuoteInline, self).formfield_for_foreignkey(db_field, request, **kwargs)"""
 
 class PhotoInline(admin.TabularInline):
 	model = Photo

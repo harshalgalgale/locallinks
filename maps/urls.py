@@ -8,5 +8,5 @@ urlpatterns = patterns('',
 	url(r'^like_place/$', views.like_place, name='like_place'),
 	url(r'^place/single/(?P<place_title_url>[-\w]+)/$', views.single, name='single'),
 	url(r'^places/tagged/(?P<tag>\w+)/$', views.tag, name='tag'),
-	url(r'^search/', include('haystack.urls')),
+	url(r'^search/', views.search, name='search'),
 	)

@@ -1,5 +1,5 @@
 from haystack import indexes
-from maps.models import Place
+from maps.models import Place, Map, Page, Layer
 
 class AssetIndex(indexes.SearchIndex, indexes.Indexable):
 	text = indexes.CharField(document=True, use_template=True)

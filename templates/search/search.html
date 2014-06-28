@@ -1,45 +1,154 @@
+{% extends 'maps/base.html' %}
+
+{% block body_block %}
+
 {% if query %}
-{% load static %}
-            <h1>Search Results for '{{ query|capfirst }}'</h1>
+	{% load static %}
+<div class="container-fluid full-height">
+	<div class="row full-height">
+		<div id="window" class="col-md-8 col-md-push-4">
+		</div>
+		<div class="col-md-4 col-md-pull-8"  id="place_description">
 
-            {% for result in page.object_list %}
-                {% if result.object.title %}	
-               	<div class="media">
-					<a class="pull-left" href="{% url 'single' result.object.local_url %}">{% if result.object.thumbnail %}
-				{% load cropping %}
-				<img src="{% cropped_thumbnail result.object "cropping" scale=1 %}" alt="{{ result.object.title }} thumbnail" class="img-thumbnail">
-			{% else %}
-				<img src="{% static 'img/image_placeholder.gif' %}" alt="{{ place.title }} thumbnail" class="img-thumbnail">
-			{% endif %}</a>
-					
-					<div class="media-body">
-						<a href="{% url 'single' result.object.local_url %}"><h4 class="media-heading">{{ result.object.title }}</h4></a>
-						<p><em>{{ result.object.description }}</em></p>
-					</div>
+	<h1>Search Results for '{{ query|capfirst }}'</h1>
+
+	{% for result in page.object_list %}
+		{% if result.object.title %}	
+			<div class="media">
+				<a class="pull-left" href="{% url 'single' result.object.local_url %}">{% if result.object.thumbnail %}{% load cropping %}<img src="{% cropped_thumbnail result.object "cropping" scale=1 %}" alt="{{ result.object.title }} thumbnail" class="img-thumbnail">{% else %}<img src="{% static 'img/image_placeholder.gif' %}" alt="{{ place.title }} thumbnail" class="img-thumbnail">{% endif %}</a>
+
+				<div class="media-body">
+					<a href="{% url 'single' result.object.local_url %}"><h4 class="media-heading">{{ result.object.title }}</h4></a>
+					<p><em>{{ result.object.description }}</em></p>
 				</div>
-                	
-                	
-                	
-                	
-                {% endif %}
-            {% empty %}
-                <p>No results found for '{{ query }}'.</p>
-            {% endfor %}
+			</div>
+			
+		{% endif %}
+		{% empty %}
+			<p>No results found for '{{ query }}'.</p>
+	{% endfor %}
 
-            {% if page.has_previous or page.has_next %}
-                <div>
-                    {% if page.has_previous %}<a href="?q={{ query }}&amp;page={{ page.previous_page_number }}">{% endif %}&laquo; Previous{% if page.has_previous %}</a>{% endif %}
-                    |
-                    {% if page.has_next %}<a href="?q={{ query }}&amp;page={{ page.next_page_number }}">{% endif %}Next &raquo;{% if page.has_next %}</a>{% endif %}
-                </div>
-            {% endif %}
-        {% else %}
-            {# Show some example queries to run, maybe query syntax, something else? #}
-            <h1>Search Results</h1>
-            <p>No results found</p>
-        {% endif %}
-    </form>
+	{% if page.has_previous or page.has_next %}
+ 		<div>{% if page.has_previous %}<a href="?q={{ query }}&amp;page={{ page.previous_page_number }}">{% endif %}&laquo; Previous{% if page.has_previous %}</a>{% endif %} | {% if page.has_next %}<a href="?q={{ query }}&amp;page={{ page.next_page_number }}">{% endif %}Next &raquo;{% if page.has_next %}</a>{% endif %}
+		</div>
+	{% endif %}
+
+	{% else %}
+		{# Show some example queries to run, maybe query syntax, something else? #}
+		<h1>Search Results</h1>
+		<p>No results found</p>
+{% endif %}
+
+</div>
+</div>
+</div>
+
+{% endblock %}
 
 {% block scripts_block %}
+
+<script>
+	
+	$(document).ready(function() {
+		$(document).delegate('*[data-toggle="lightbox"]', 'click', function(event) { event.preventDefault(); $(this).ekkoLightbox(); }); 
+	});
+	
+	var centrelon = {{ map.lon }};
+	var centrelat = {{ map.lat }};
+	
+	{% get_static_prefix as STATIC_PREFIX %}
+
+	
+	// Create icons for each layer
+	
+	{% for layer in layers %}
+	// {{ layer.title }}
+	var {{ layer.title|lower}}Icon = L.icon({
+		iconUrl: '{{ STATIC_PREFIX }}img/icons/pins_0{{ forloop.counter }}.png',
+    	iconSize:     	[24, 34],
+    	iconAnchor:   	[12, 34],
+    	popupAnchor:	[0, -34]
+	});
+	{% endfor %}
+
+
+	// Group places by layer, add to map
+
+{% for layer in layers %}
+var {{ layer|lower }} = L.layerGroup();
+{% endfor %}
+
+{% for result in page.object_list %}
+	{% for layer in layers %}
+		{% if result.object.layer = layer %}
+			var {{ layer|lower }}_{{ forloop.counter0 }} = L.marker([{{ result.object.lat }}, {{ result.object.lon }}], {icon: {{ layer|lower }}Icon}).on('click', onClick_{{ layer|lower }}_{{ forloop.counter0 }}).bindPopup('{{ result.object.title }}');
+			function onClick_{{ layer|lower }}_{{ forloop.counter0 }}(e) {
+				// title = "{{ place.title }}";
+				url = "{% url 'place' result.object.local_url %}";
+				$.get(url, function( data ) {
+   					$( "#place_description" ).html( data );
+   				});
+   			}
+			{{ layer|lower }}.addLayer({{ layer|lower }}_{{ forloop.counter0 }});
+		{% endif %}
+	{% endfor %}
+{% endfor %}
+
+	var watercolor = new L.StamenTileLayer("watercolor");
+	var streets = new L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+	attribution: 'Map data &copy; <a href="http://openstreetmap.org">OpenStreetMap</a> contributors',
+    maxZoom: 18
+	});
+	
+	var baseMaps = {
+		"Pretty": watercolor,
+		"Useful": streets
+	};
+	
+	var map = L.map('window', {
+		center: new L.LatLng(centrelon, centrelat),
+		zoom: 13,
+		layers: [{% for layer in layers %} {{ layer|lower }},{% endfor %} watercolor],
+		zoomControl: false,
+	});
+	
+	// Create layer overlay object
+	
+	var overlayMaps = {
+		{% for layer in layers %}"{{ layer.description }}": {{ layer|lower }},{% endfor %}
+	};
+	
+	
+	// Add layer control
+	
+	L.control.layers(baseMaps, overlayMaps, {
+		collapsed: true, 
+		position: 'bottomright'
+	}).addTo(map);
+	
+	
+	// Add zoom control
+	L.control.zoom({
+		position: 'topright',
+	}).addTo(map);
+	
+	// Add 'show all places' button
+	
+	var ShowAll = L.Control.extend({
+    	options: {
+     	   position: 'bottomleft'
+    	},
+
+    	onAdd: function (map) {
+    	    // create the control container with a particular class name
+    	    this._div = L.DomUtil.create('div', 'showbutton');
+			this._div.innerHTML = '<a href="/" class="btn btn-primary btn-large">Show all places</a>';
+        	return this._div;
+    	}
+	});
+
+	map.addControl(new ShowAll());
+	
+</script>
 
 {% endblock %}

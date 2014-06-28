@@ -145,17 +145,21 @@
 			
 			<div class="tab-pane" id="similar">
 			<h3>Other Places Like This</h3>
-			<div class="media">
 			{% for i in similar %}
-				
-			{% load cropping %}
-			<img src="{% cropped_thumbnail i "cropping" scale=1 %}" alt="" class="img-thumbnail pull-left">	
+			<div class="media">
+				{% if i.thumbnail %}
+				{% load cropping %}
+				<img src="{% cropped_thumbnail i "cropping" scale=1 %}" alt="" class="img-thumbnail pull-left">
+				{% else %}
+				<img src="{% static 'img/image_placeholder.gif' %}" alt="{{ place.title }} thumbnail" class="img-thumbnail pull-left">
+				{% endif %}
 				<div class="media-body">	
 				<a href="../{{ i.local_url }}"><h4 class="media-heading">{{ i.title }}</h4></a>
 				<p><em>{{ i.description }}</em></p>
 				</div>
-			{% endfor %}
 			</div>
+			{% endfor %}
+			
 			
 		</div>
 	</div>
@@ -256,7 +260,7 @@
 	
 	// Add 'show all places' button
 	
-	var MyControl = L.Control.extend({
+	var ShowAll = L.Control.extend({
     	options: {
      	   position: 'bottomleft'
     	},
@@ -269,7 +273,7 @@
     	}
 	});
 
-	map.addControl(new MyControl());
+	map.addControl(new ShowAll());
 
 	
 </script>

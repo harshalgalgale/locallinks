@@ -4,6 +4,7 @@ from django.http import HttpResponse
 from datetime import datetime
 from maps.models import Place, Quote, Map, Layer, Page, Activity, Photo, ActivityQuote
 import re
+from haystack.views import basic_search
 
 def encode_url(str):
 	return re.sub('[^A-Za-z0-9]+', '_', str)
@@ -169,3 +170,12 @@ def page(request, page_url):
 		pass
 	
 	return render_to_response('maps/page.html', context_dict, context)
+
+
+def search(request):
+		
+	return basic_search(request, extra_context={
+		'nav': Page.objects.all(),
+		'map': Map.objects.get(title="Tower Hamlets"),
+		'layers': Layer.objects.all(),
+		})
