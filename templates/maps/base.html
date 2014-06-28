@@ -5,79 +5,26 @@
 <html>
 	<head>
 		<meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Local Links</title>
+		<title>Local Links in Tower Hamlets</title>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
-		<script src="{% static 'js/jquery.slimscroll.min.js' %}"></script>
 		<link href="{% static 'css/bootstrap.min.css' %}" rel="stylesheet" media="screen">
+		<link href="{% static 'css/styles.css' %}" rel="stylesheet" media="screen">
 		<link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.css" />
+		<link href="{% static 'css/ekko-lightbox.min.css' %}" rel="stylesheet">
 		<link href="http://fonts.googleapis.com/css?family=Lobster" rel="stylesheet" type="text/css">
-<link href="http://fonts.googleapis.com/css?family=Cabin" rel="stylesheet" type="text/css">
+		<link href="http://fonts.googleapis.com/css?family=Cabin" rel="stylesheet" type="text/css">
+		<link href='http://fonts.googleapis.com/css?family=Gloria+Hallelujah' rel='stylesheet' type='text/css'>
 <script src="http://cdn.leafletjs.com/leaflet-0.7.2/leaflet.js"></script>
 <script type="text/javascript" src="http://maps.stamen.com/js/tile.stamen.js?v1.2.4"></script>
-		<style>
-			body { 	
-				padding-top: 50px; 
-				height: 100%;		
+		<style>		
+			.logo {
+				display: block;
+				text-indent: -5000px;
+				background: url('{% static "img/logo.png" %}') top left no-repeat;
+				width: 140px;
+				height: 42px;
+				margin: 3px 3px 3px 0px!important;
 			}
-			html {
-				height: 100%;
-			}
-			#window {
-				height: 100%;
-			}
-			.container-fluid, .container-fluid > .row {
-				height: 100%;
-			}
-			#place_description {
-				height: 80%;
-			}
-			.detail {
-				height: 90%;
-			}
-			#about {
-				height: 100%;
-			}
-			#quotes {
-				height: 60%;
-				overflow-y: scroll;
-			}
-			.tab-content {
-				margin-top: 20px;
-			}
-			h1, h2, h3, h4 {
-    			font-family: 'Lobster', Helvetica, Arial, sans-serif;
-			}
-			body, .leaflet-container {
-				font-family: 'Cabin';
-			}
-			.navbar-brand {
-				font-family: 'Lobster';
-				color: #d17442 !important;
-			} 
-			.navbar-brand:hover {
-				color: #d9cc3c !important;
-			}
-			a {
-				color: #00ada7;
-			}
-			.address {
-				height: 180px;
-			}
-			/* tab color */
-			.nav-pills>li>a { 
-  				border-color: #c1c1c1;
-			}
-
-/* active tab color */
-.nav-pills>li.active>a, .nav-pills>li.active>a:hover, .nav-pills>li.active>a:focus {
-  background-color: #c24704;
-}
-
-/* hover tab color */
-.nav-pills>li>a:hover {
-  background-color: #c24704;
-  color: white;
-}
 		</style>
 	</head>
 
@@ -91,7 +38,7 @@
         				<span class="icon-bar"></span>
         				<span class="icon-bar"></span>
       				</button>
-      				<a class="navbar-brand" href="{% url 'index' %}">Local Links in Tower Hamlets</a>
+      				<a class="navbar-brand logo" href="{% url 'index' %}">Local Links</a> <span class="label label-default pull-right" style="margin-top: 2px">Beta</span>
    				</div>
    				<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
      				<ul class="nav navbar-nav">
@@ -109,12 +56,14 @@
 				</div>
 			</div>
 		</nav>
-		<div class="container-fluid">			
-					{% block body_block %} {% endblock %}
-				
-			
+
+			{% block body_block %} {% endblock %}
+							
 		</div>
 	    <script src="{% static 'js/bootstrap.min.js' %}"></script>
+	    
+	    <script src="{% static 'js/ekko-lightbox.min.js' %}"></script>
+	    
 	    <script>
 		$(document).ready(function() {
 	    	

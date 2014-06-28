@@ -145,7 +145,15 @@ INSTALLED_APPS = (
     'haystack',
     'maps',
     'tinymce',
+    'easy_thumbnails',
+    'image_cropping',
+    'taggit'
 )
+
+from easy_thumbnails.conf import Settings as thumbnail_settings
+THUMBNAIL_PROCESSORS = (
+	'image_cropping.thumbnail_processors.crop_corners',
+) + thumbnail_settings.THUMBNAIL_PROCESSORS
 
 SESSION_SERIALIZER = 'django.contrib.sessions.serializers.JSONSerializer'
 

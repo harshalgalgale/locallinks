@@ -1,15 +1,29 @@
 {% if query %}
-            <h1>Search Results</h1>
+{% load static %}
+            <h1>Search Results for '{{ query|capfirst }}'</h1>
 
             {% for result in page.object_list %}
-                <p>
-                    <a href="/place/single/{{ result.object.local_url }}">{{ result.object.title }}</a>
-                </p>
-                {% if result.object.first_name %}
-                	<p>{{ result.object.first_name }} {{ result.object.last_name }}</p>
+                {% if result.object.title %}	
+               	<div class="media">
+					<a class="pull-left" href="{% url 'single' result.object.local_url %}">{% if result.object.thumbnail %}
+				{% load cropping %}
+				<img src="{% cropped_thumbnail result.object "cropping" scale=1 %}" alt="{{ result.object.title }} thumbnail" class="img-thumbnail">
+			{% else %}
+				<img src="{% static 'img/image_placeholder.gif' %}" alt="{{ place.title }} thumbnail" class="img-thumbnail">
+			{% endif %}</a>
+					
+					<div class="media-body">
+						<a href="place/single/{{ result.object.local_url }}"><h4 class="media-heading">{{ result.object.title }}</h4></a>
+						<p><em>{{ result.object.description }}</em></p>
+					</div>
+				</div>
+                	
+                	
+                	
+                	
                 {% endif %}
             {% empty %}
-                <p>No results found for '{{ query}}'.</p>
+                <p>No results found for '{{ query }}'.</p>
             {% endfor %}
 
             {% if page.has_previous or page.has_next %}

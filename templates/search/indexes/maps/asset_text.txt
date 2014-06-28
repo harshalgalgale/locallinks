@@ -1,2 +1,2 @@
-{{ object.asset_title }}
-{{ object.type }}
+{{ object.title }}
+{{ object.description }}

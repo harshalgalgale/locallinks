@@ -1,111 +1,170 @@
-		<div>
-			<div id="like_button" class="pull-right">
-				 {% if not has_liked %}
-				 <button id="likes" data-placeid="{{ place.id }}" class="btn btn-xs btn-primary" type="button">Like</button>
-				 {% else %}
-				 	
-				 {% endif %}
-				 <span id="like_count">{{ place.likes }}</span> <span class="glyphicon glyphicon-star"></span>
-			</div>
-			<h3>{{ place.title }}</h3>
-	
-
-		
-		<div class="address row">
-			<div class="col-md-6">	
-														{% if place.thumbnail %}
-						<img src="media/{{ place.thumbnail }}" alt="" class="img-thumbnail">
+		<br />
+		<div class="place-header well well-lg">
+			<div class="media">
+				{% if place.thumbnail %}
+					{% load cropping %}
+					<img src="{% cropped_thumbnail place "cropping" scale=1 %}" alt="{{ place.title }} thumbnail" class="img-thumbnail pull-left">
+				{% else %}
+					{% load static %}
+					<img src="{% static 'img/image_placeholder.gif' %}" alt="{{ place.title }} thumbnail" class="img-thumbnail  pull-left">
+				{% endif %}
+				<div class="media-body">
+					<div class="place-title">
+						<p class="pull-right"><span id="like_count">{{ place.likes }}</span> <span class="glyphicon glyphicon-star" style="color:#C24704"></span></p>
+						<div id="like_button" class="pull-right">
+				 		{% if not has_liked %}
+				 		<button id="likes" data-placeid="{{ place.id }}" class="btn btn-xs btn-primary" type="button">Like</button>
+				 		{% else %}
+					 	
+				 		{% endif %}
+						</div>
+						<h3>{{ place.title }}</h3>
+						
+						{% if place.description %}
+						<p><em>{{ place.description }}</em></p>
 						{% else %}
-						<img src="http://lorempixel.com/140/140/city" alt="" class="img-thumbnail">
+						<p>Place description</p>
 						{% endif %}
-			</div>
-			<div class="col-md-6">
-							<p><small>{{ place.address_1 }}<br />
-							{% if place.address_2 %}
-								{{ place.address_2 }}<br />
-							{% endif %}
-							{% if place.address_3 %}
-								{{ place.address_3 }}<br />
-							{% endif %}
-							{{ place.city }}<br />
-								{{ place.postcode|upper }}</small></p>
-							<p><small>{% if place.phone %}{{ place.phone }}<br />{% endif %}
-							{% if place.email %}
-								{{ place.email|urlizetrunc:30 }}<br />
-							{% endif %}
-							{% if place.url %}
-								{{ place.url|urlizetrunc:30 }}
-							{% endif %}
-							</small></p>
-						</div>
+						<p><small><strong>Tags: </strong>{% for tag in tags %}<a href="{% url 'tag' tag|slugify %}">{{ tag }}</a> {% endfor %}</small></p>					
+					</div>
 				</div>
-		
+			</div>
 		</div>
+
 		<ul class="nav nav-pills" id="placeTabs">
-  			<li class="active" data-toggle="tab"><a href="#about">About</a></li>
-  			<li><a href="#people" data-toggle="tab">People</a></li>
-  			<!---<li><a href="#why" data-toggle="tab">Why visit?</a></li>
-  			<li><a href="#tags" data-toggle="tags">Tags</a></li>
-  			<li><a href="#more" data-toggle="tags">More</a></li>-->
+			{% if quotes %}
+			<li class="active"><a href="#talk"><span class="glyphicon glyphicon-home"></span></a></li>
+			{% endif %}
+			{% if photos %}
+  			<li><a href="#photos"><span class="glyphicon glyphicon-camera"></span></a></li>
+  			{% endif %}
+  			{% if activities %}
+  			<li{% if not quotes %} class="active" {% endif %}><a href="#activities">What's on <span class="badge">{{ activities|length }}</span></a></li>
+  			{% endif %}
+  			<li class="dropdown">
+    			<a class="dropdown-toggle" data-toggle="dropdown" href="#">More <span class="caret"></span></a>
+    			<ul class="dropdown-menu">
+  					<li><a href="#contact">Contact details</a></li>
+  					{% if similar %}
+  					<li class="divider"></li>
+  					<li><a href="#similar">Other places like this</a></li>
+  					{% endif %}
+  				</ul>
+  			</li>
 		</ul>
+
 		<div class="tab-content detail">
-			<div class="tab-pane active" id="about">
-				<h4>What people are saying</h4>
-				<div id="quotes">
+
+			<div class="tab-pane {% if quotes %}active{% endif %}" id="talk">
+				<h3>What You Said</h3>
+				<div id="quotes" class="scroll">
 				{% for quote in quotes %}
+					<div class="bubble">
+						<span class="glyphicon glyphicon-user"></span> '{{ quote.text }}'
+					</div>
+				{% endfor %}
+				</div>
+			</div>
+			
+			<div class="tab-pane" id="contact">
+			
+			<h3>Contact Details</h3>
+			<div id="description" class="scroll">
+					<address>
+						{{ place.title }}<br />
+						{{ place.address_1 }}<br />
+						{% if place.address_2 %}
+						{{ place.address_2 }}<br />
+						{% endif %}
+						{% if place.address_3 %}
+						{{ place.address_3 }}<br />
+						{% endif %}
+						{{ place.city }}<br />
+						{{ place.postcode|upper }}<br />
+						<br />
+						{% if place.phone %}
+						<strong>Phone:</strong> {{ place.phone }}<br />
+						{% endif %}
+						{% if place.email %}
+						<strong>Email:</strong> {{ place.email|urlizetrunc:30 }}<br />
+						{% endif %}
+						{% if place.url %}
+						<strong>Web:</strong>	{{ place.url|urlizetrunc:30 }}<br />
+						{% endif %}
+						{% if place.directory_url %}
+						<strong>Idea Store Directory:</strong> {{ place.directory_url|urlizetrunc:30 }}<br />
+						{% endif %}
+					</address>
+				</div>
+			
+			</div>
+
+			<div class="tab-pane {% if not quotes %}active{% endif %}" id="activities">
+				<h3>What's On</h3>
+				<div class="scroll">
+					{% for activity, activityquotes in activities.items %}
 					<div class="panel panel-default">
-						<div class="panel-body">
-							{{ quote.text }}
+						<div class="panel-heading">
+							<h4 class="panel-title">{{ activity.title }}</h4>
+							<p><small>{{ activity.description }}</small></p>
 						</div>
+						{% if activityquotes %}
+						<div class="panel-body">
+							{% for activityquote in activityquotes %}
+						<div class="bubble">
+							<span class="glyphicon glyphicon-user"></span> '{{ activityquote.text }}'
+						</div>
+						{% endfor %}
 					</div>
-				{% endfor %}
-				</div>
-			</div>
-			<div class="tab-pane" id="people">
-				<h4>Who to look for</h4>
-				<div id="roles">
-				{% for role in roles %}
-				<div class="panel panel-default">
-					<div class="panel-body">
-						<span class="glyphicon glyphicon-user"></span><strong>
-{{ role.person }}:</strong> "{{ role.text }}"
-					</div>
+						{% endif %}
 				</div>
 				{% endfor %}
 				</div>
 			</div>
-			<!--<div class="tab-pane" id="why">
+			
+			<div class="tab-pane" id="photos">
+				<h3>Photos</h3>
+					{% load thumbnail %}
+					<div class="row">
+						{% for photo in photos %}
+    					<a href="media/{{ photo.photo }}" data-toggle="lightbox" data-gallery="multiimages" class="col-xs-6 col-md-3" data-title="{{ photo.alt }}"><img src="{% thumbnail photo.photo 64x64 box=photo.cropping crop detail %}" alt="{{ photo.alt }}" class="thumbnail" /></a>
+						{% endfor %}
+					</div>
 			</div>
-			<div class="tab-pane" id="tags">
+			
+			<div class="tab-pane" id="similar">
+			<h3>Other Places Like This</h3>
+			<div class="media">
+			{% for i in similar %}
+				
+			{% load cropping %}
+			<img src="{% cropped_thumbnail i "cropping" scale=1 %}" alt="" class="img-thumbnail pull-left">	
+				<div class="media-body">	
+				<a href="place/single/{{ i.local_url }}"><h4 class="media-heading">{{ i.title }}</h4></a>
+				<p><em>{{ i.description }}</em></p>
+				</div>
+			{% endfor %}
 			</div>
-			<div class="tab-pane" id="more">
-			</div>-->
+			
 		</div>
+
 
 {% block scripts_block %} 
    	<script>
 		$('#placeTabs a').click(function (e) {
 			e.preventDefault()
 			$(this).tab('show')
-		})
-		
-		$(document).ready(function(){
-			$('#quotes').slimScroll({
-				height: '70%'
-			});
 		});
 		
 		$(document).ready(function() {
-		
-		$('#likes').click(function(){
-			var placeid;
-			placeid = $(this).attr("data-placeid");
-			$.get('/like_place/', {place_id: placeid}, function(data){
-				$('#like_count').html(data);
-				$('#likes').hide();
+			$('#likes').click(function(){
+				var placeid;
+				placeid = $(this).attr("data-placeid");
+				$.get('/like_place/', {place_id: placeid}, function(data){
+					$('#like_count').html(data);
+					$('#likes').hide();
+				});
 			});
-		});
-		
 		});
 	</script>
 

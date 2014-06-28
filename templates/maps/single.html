@@ -3,84 +3,149 @@
 {% load static %}
 
 {% block body_block %}
-
+<div class="container-fluid full-height">
 <div class="row">
 	<div id="window" class="col-md-8 col-md-push-4">
 	</div>
 	<div class="col-md-4 col-md-pull-8"  id="place_description">
 				<div>
-			<div id="like_button" class="pull-right">
-				 {% if not has_liked %}
-				 <button id="likes" data-placeid="{{ place.id }}" class="btn btn-xs btn-primary" type="button">Like</button>
-				 {% else %}
+
+<div class="place-header well well-lg">
+			{% if place.thumbnail %}
+				{% load cropping %}
+				<img src="{% cropped_thumbnail place "cropping" scale=1 %}" alt="" class="img-thumbnail img-responsive pull-left">
+			{% else %}
+				<img src="http://lorempixel.com/64/64/city" alt="" class="img-thumbnail img-responsive pull-left">
+			{% endif %}	
+			<div class="place-title">
+				<div id="like_button" class="pull-right">
+					{% if not has_liked %}
+				 	<button id="likes" data-placeid="{{ place.id }}" class="btn btn-xs btn-primary" type="button">Like</button>
+				 	{% else %}
 				 	
-				 {% endif %}
-				 <span id="like_count">{{ place.likes }}</span> <span class="glyphicon glyphicon-star"></span>
- 
-
- 
-
-			</div>
-			<h3>{{ place.title }}</h3>
-		</div>
-		<ul class="nav nav-tabs" id="placeTabs">
-  			<li class="active" data-toggle="tab"><a href="#about">About</a></li>
-  			<li><a href="#people" data-toggle="tab">People</a></li>
-  			<!---<li><a href="#why" data-toggle="tab">Why visit?</a></li>
-  			<li><a href="#tags" data-toggle="tags">Tags</a></li>
-  			<li><a href="#more" data-toggle="tags">More</a></li>-->
-		</ul>
-		<div class="tab-content detail">
-			<div class="tab-pane active" id="about">
-				<div class="row">
-					{% load static %}
-					<div class="col-md-5">
-						<img src="media/{{ place.place_thumbnail }}" alt="" class="img-thumbnail">
-					</div>
-					<div class="col-md-6">
-						<p><small>{{ place.address_1 }}<br />
-						{{ place.address_2 }}<br />
-						{{ place.address_3 }}<br />
-						{{ place.city }}<br />
-						{{ place.postcode }}</small></p>
-						<p><small>{{ place.phone }}<br />
-						{{ place.email|urlizetrunc:30 }}<br />
-						{{ place.url|urlizetrunc:30 }}
-						</small></p>
-					</div>
+				 	{% endif %}
+				 	<span id="like_count">{{ place.likes }}</span> <span class="glyphicon glyphicon-star" style="color:#C24704"></span>
 				</div>
-				<h4>What people are saying</h4>
-				<div id="quotes">
+				<h3>{{ place.title }}</h3>
+				{% if place.description %}
+				<p>{{ place.description }}</p>
+				{% else %}
+				<p>Place description</p>
+				{% endif %}
+			</div>
+		</div>
+
+		<ul class="nav nav-pills" id="placeTabs">
+			<li class="active"><a href="#talk">Talk</a></li>
+  			<li><a href="#people">People</a></li>
+  			<li><a href="#photos">Photos</a></li>
+  			<li><a href="#activities">What's on</a></li>
+  			<li><a href="#contact">Contact</a></li>
+		</ul>
+
+		<div class="tab-content detail">
+
+			<div class="tab-pane active" id="talk">
+				<h3>What people are saying</h3>
+				<div id="quotes" class="scroll">
 				{% for quote in quotes %}
 					<div class="panel panel-default">
 						<div class="panel-body">
-							{{ quote.text }}
+							<span class="glyphicon glyphicon-user"></span> '{{ quote.text }}'
 						</div>
 					</div>
 				{% endfor %}
 				</div>
 			</div>
-			<div class="tab-pane" id="people">
-				<h4>Who to look for</h4>
 			
+			<div class="tab-pane" id="contact">
+			
+			<h3>Contact</h3>
+			<div id="description" class="scroll">
+					<address>
+						{{ place.title }}<br />
+						{{ place.address_1 }}<br />
+						{% if place.address_2 %}
+						{{ place.address_2 }}<br />
+						{% endif %}
+						{% if place.address_3 %}
+						{{ place.address_3 }}<br />
+						{% endif %}
+						{{ place.city }}<br />
+						{{ place.postcode|upper }}<br />
+						<br />
+						{% if place.phone %}
+						<strong>Phone:</strong> {{ place.phone }}<br />
+						{% endif %}
+						{% if place.email %}
+						<strong>Email:</strong> {{ place.email|urlizetrunc:30 }}<br />
+						{% endif %}
+						{% if place.url %}
+						<strong>Web:</strong>	{{ place.url|urlizetrunc:30 }}<br />
+						{% endif %}
+					</address>
+				</div>
+			
+			</div>
+
+			<div class="tab-pane" id="people">
+				<h3>Who to look for</h3>
+				<div id="roles" class="scroll">
 				{% for role in roles %}
 				<div class="panel panel-default">
 					<div class="panel-body">
 						<span class="glyphicon glyphicon-user"></span><strong>
-{{ role.person }}:</strong> "{{ role.text }}"
+{{ role.person }}:</strong> {{ role.text }}
 					</div>
 				</div>
 				{% endfor %}
+				</div>
 			</div>
-			<!--<div class="tab-pane" id="why">
+
+			<div class="tab-pane" id="activities">
+				<h3>What's on</h3>
+				<div id="activities" class="scroll">
+				{% for activity in activities %}
+					<div class="panel panel-default">
+						<div class="panel-heading">
+							<h5 class="panel-title">{{ activity.title }}</h5>
+						</div>
+						<div class="panel-body">
+							<p><strong>When:</strong> {{ activity.time }}</p>
+							<p><strong>What:</strong> {{ activity.description }}</p>
+							{% if activity.url %}
+								<p>{{ activity.url|urlizetrunc:30 }}</p>
+							{% endif %}
+						</div>
+					</div>	
+				{% endfor %}
+				</div>
 			</div>
-			<div class="tab-pane" id="tags">
+			
+			<div class="tab-pane" id="photos">
+				<h3>Photos</h3>
+				<div class="row">
+  					<div class="col-xs-6 col-md-3">
+    					<a href="#" class="thumbnail">
+    					<img src="http://lorempixel.com/64/64/city" alt=""></a>
+  					</div>
+  					<div class="col-xs-6 col-md-3">
+    					<a href="#" class="thumbnail">
+    					<img src="http://lorempixel.com/64/64/nature" alt=""></a>
+  					</div>
+  					<div class="col-xs-6 col-md-3">
+    					<a href="#" class="thumbnail">
+    					<img src="http://lorempixel.com/64/64/sports" alt=""></a>
+  					</div>
+  					<div class="col-xs-6 col-md-3">
+    					<a href="#" class="thumbnail">
+    					<img src="http://lorempixel.com/64/64/animals" alt=""></a>
+  					</div>
+				</div>
 			</div>
-			<div class="tab-pane" id="more">
-			</div>-->
+		<a href="/" class="btn btn-primary btn-large">Show all places</a>
 		</div>
-	</div>
-</div>
+
 
 {% endblock %}
 
@@ -93,11 +158,11 @@
 		$(this).tab('show')
 	})
 		
-	$(document).ready(function(){
-		$('#quotes').slimScroll({
-			height: '70%'
-		});
-	});
+	//$(document).ready(function(){
+	//	$('#quotes').slimScroll({
+	//		height: '70%'
+	//	});
+	//});
 		
 	$(document).ready(function() {
 		
@@ -119,12 +184,15 @@
 
 	// Create icon
 	
-	var {{ place.type|lower }}Icon = L.icon({
-		iconUrl: '{{ STATIC_PREFIX }}img/icons/{{ place.type|lower }}.png',
-    	iconSize:     	[29, 40],
-    	iconAnchor:   	[14, 20],
-    	popupAnchor:	[0, -20]
+	{% for layer in layers %}
+	// {{ layer.title }}
+	var {{ layer.title|lower}}Icon = L.icon({
+		iconUrl: '{{ STATIC_PREFIX }}img/icons/pins_0{{ forloop.counter }}.png',
+    	iconSize:     	[24, 34],
+    	iconAnchor:   	[14, 22],
+    	popupAnchor:	[-1, -20]
 	});
+	{% endfor %}
 
 	// Add Stamen tileset
 
@@ -145,7 +213,7 @@
 	
 	// Add marker
 	
-	var marker = L.marker([{{ place.lat }}, {{ place.lon }}], {icon: {{ place.type|lower }}Icon}).bindPopup('{{ place.title }}').addTo(map);
+	var marker = L.marker([{{ place.lat }}, {{ place.lon }}], {icon: {{ place.layer|lower }}Icon}).bindPopup('{{ place.title }}').addTo(map);
 	
 </script>
 

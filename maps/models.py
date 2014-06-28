@@ -1,8 +1,10 @@
 from django.db import models
 from tinymce.models import HTMLField
+from image_cropping import ImageRatioField
 import json
 import urllib2
 import re
+from taggit.managers import TaggableManager
 
 def encode_url(str):
 	return re.sub('[^A-Za-z0-9]+', '_', str)
@@ -22,14 +24,6 @@ class Layer(models.Model):
 	def __unicode__(self):  
 	    return self.title
 	
-class Type(models.Model):
-	title = models.CharField(max_length=64)
-	description = models.CharField(max_length=256, blank=True)
-	layer = models.ForeignKey(Layer)
-	
-	def __unicode__(self):
-	    return self.title
-
 class City(models.Model):
 	title = models.CharField(max_length=64)
 	def __unicode__(self):
@@ -40,12 +34,13 @@ class City(models.Model):
 
 class Place(models.Model):
 	title = models.CharField(max_length=128)
-	local_url = models.CharField(max_length=128)
+	local_url = models.SlugField()
 	thumbnail = models.ImageField(upload_to='img/asset_thumbs/', blank=True)
+	cropping = ImageRatioField('thumbnail', '64x64')
 	map = models.ForeignKey(Map)
-	type = models.ForeignKey(Type)
+	"""type = models.ForeignKey(Type)"""
 	layer = models.ForeignKey(Layer)
-	likes = models.IntegerField()
+	likes = models.IntegerField(default=0)
 	address_1 = models.CharField(max_length=256)
 	address_2 = models.CharField(max_length=256, blank=True)
 	address_3 = models.CharField(max_length=256, blank=True)
@@ -55,29 +50,32 @@ class Place(models.Model):
 	lon = models.CharField(max_length=64)
 	phone = models.CharField(max_length=64, blank=True)
 	email = models.EmailField(max_length=254, blank=True)
-	url = models.URLField(blank=True)
+	url = models.URLField('URL', blank=True)
+	directory_url = models.URLField('Idea Store Directory URL', blank=True)
 	published = models.BooleanField()
+	description = models.CharField(max_length=512, blank=True)
+	tags = TaggableManager()
 	
 	def __unicode__(self):
 		return self.title
 	
 	def save(self, *args, **kwargs):
-		self.build_local_url()
-		if not self.pk:
-			self.set_coords()
+		self.set_coords()
 		super(Place, self).save(*args, **kwargs)
 		
 	def set_coords(self):
-		"""Get the coordinates of the asset using the postcode and mapit"""
-		url = 'http://mapit.mysociety.org/postcode/'+self.postcode.replace(" ", "")
+		"""Address lookup using Google Maps"""
+		
+		address = [self.address_1, self.address_2, self.address_3, self.postcode]
+		url = ''
+		for i in address:
+			if i != '':
+				url = url+',+'+i.replace(" ", "+")
+		url = 'https://maps.googleapis.com/maps/api/geocode/json?address='+url[2:]+',+London,+UK&sensor=true_or_false'
 		data = urllib2.urlopen(url)
 		data = json.load(data)
-		self.lat = data['wgs84_lat']
-		self.lon = data['wgs84_lon']
-	
-	def build_local_url(self):
-		"""Generate a machine-friendly URL"""
-		self.local_url = encode_url(self.title)
+		self.lat = data['results'][0]['geometry']['location']['lat']
+		self.lon = data['results'][0]['geometry']['location']['lng']
 	
 		
 class Quote(models.Model):
@@ -87,7 +85,26 @@ class Quote(models.Model):
 	def __unicode__(self):
 		return self.text
 
-class Person(models.Model):
+class Activity(models.Model):
+	place = models.ForeignKey(Place)
+	title = models.CharField(max_length=128)
+	description = models.CharField(max_length=512, blank=True)
+	
+	def __unicode__(self):
+		return self.title
+	
+	class Meta:
+		verbose_name_plural = "Activities"
+
+class ActivityQuote(models.Model):
+	place = models.ForeignKey(Place)
+	activity = models.ForeignKey(Activity)
+	text = models.CharField(max_length=512)
+
+	def __unicode__(self):
+		return self.text
+
+"""class Person(models.Model):
 	first_name = models.CharField(max_length=128)
 	last_name = models.CharField(max_length=128)
 	avatar = models.ImageField(upload_to='img/avatars/', blank=True)
@@ -105,20 +122,22 @@ class Role(models.Model):
 	text = models.CharField(max_length=512)
 	
 	def __unicode__(self):
-		return self.text
+		return self.text"""
+
+class Photo(models.Model):
+	place = models.ForeignKey(Place)
+	photo = models.ImageField(upload_to='img/asset_photos/', blank=True)
+	cropping = ImageRatioField('thumbnail', '64x64')
+	alt = models.CharField(max_length=64, blank=True)
+	credit = models.CharField(max_length=128, blank=True)
+	
+	def __unicode__(self):
+		return self.alt
 
 class Page(models.Model):
 	title = models.CharField(max_length=128)
-	local_url = models.CharField(max_length=128)
+	local_url = models.SlugField()
 	content = HTMLField()
-	
-	def save(self, *args, **kwargs):
-		self.build_local_url()
-		super(Page, self).save(*args, **kwargs)
-	
-	def build_local_url(self):
-		"""Generate a machine-friendly URL"""
-		self.page_local_url = encode_url(self.title)
 	
 	def __unicode__(self):
 		return self.title

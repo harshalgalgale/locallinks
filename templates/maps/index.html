@@ -3,15 +3,37 @@
 {% load static %}
 
 {% block body_block %}
-
-<div class="row">
-	<div id="window" class="col-md-8 col-md-push-4">
-	</div>
-	<div class="col-md-4 col-md-pull-8"  id="place_description">
+<div class="container-fluid full-height">
+	<div class="row full-height">
+		<div id="window" class="col-md-8 col-md-push-4">
+		</div>
+		<div class="col-md-4 col-md-pull-8"  id="place_description">
 		<h1>Welcome!</h1>
-		<p class="lead">Click on a pin to find out what people think about what's going on in Tower Hamlets.</p>
+		<p class="lead">This map shows the places valued by the Tower Hamlets community.</p>
+		<p class="lead">Click on a pin and start exploring what people think about what's on offer in their borough.</p>
+		<br />
+
+		<h3>Places People Like</h3>
+		{% for place in top %}
+		<div class="media">
+			<a class="pull-left" href="place/single/{{ place.local_url }}">
+			{% if place.thumbnail %}
+				{% load cropping %}
+				<img src="{% cropped_thumbnail place "cropping" scale=1 %}" alt="{{ place.title }} thumbnail" class="img-thumbnail">
+			{% else %}
+				<img src="{% static 'img/image_placeholder.gif' %}" alt="{{ place.title }} thumbnail" class="img-thumbnail">
+			{% endif %}
+			</a>	
+			<div class="media-body">
+				<a href="place/single/{{ place.local_url }}"><h4 class="media-heading">{{ place.title }}</h4></a>
+				<p><em>{{ place.description }}</em></p>
+			</div>
+		</div>
+		{% endfor %}
+		
+		
 	</div>
-</div>
+	</div>
 
 {% endblock %}
 
@@ -19,18 +41,25 @@
 
 <script>
 	
+	$(document).ready(function() {
+		$(document).delegate('*[data-toggle="lightbox"]', 'click', function(event) { event.preventDefault(); $(this).ekkoLightbox(); }); 
+	});
+	
 	var centrelon = {{ map.lon }};
 	var centrelat = {{ map.lat }};
 	
 	{% get_static_prefix as STATIC_PREFIX %}
 
-	// Create icons for each type of place
-	{% for type in types %}
-	var {{ type.title|lower }}Icon = L.icon({
-    	iconUrl: '{{ STATIC_PREFIX }}img/icons/{{ type.title|lower }}.png',
-    	iconSize:     	[29, 40],
-    	iconAnchor:   	[14, 20],
-    	popupAnchor:	[0, -20]
+	
+	// Create icons for each layer
+	
+	{% for layer in layers %}
+	// {{ layer.title }}
+	var {{ layer.title|lower}}Icon = L.icon({
+		iconUrl: '{{ STATIC_PREFIX }}img/icons/pins_0{{ forloop.counter }}.png',
+    	iconSize:     	[24, 34],
+    	iconAnchor:   	[12, 34],
+    	popupAnchor:	[0, -34]
 	});
 	{% endfor %}
 
@@ -41,10 +70,10 @@
 		// Create layerGroup {{ layer|lower }}
 		var {{ layer|lower }} = L.layerGroup();
 		{% for place in place_list %}
-			var {{ layer|lower }}_{{ forloop.counter0 }} = L.marker([{{ place.lat }}, {{ place.lon }}], {icon: {{ place.type|lower }}Icon}).on('click', onClick_{{ layer|lower }}_{{ forloop.counter0 }}).bindPopup('{{ place.title }}');
+			var {{ layer|lower }}_{{ forloop.counter0 }} = L.marker([{{ place.lat }}, {{ place.lon }}], {icon: {{ place.layer|lower }}Icon}).on('click', onClick_{{ layer|lower }}_{{ forloop.counter0 }}).bindPopup('{{ place.title }}');
 			function onClick_{{ layer|lower }}_{{ forloop.counter0 }}(e) {
-				title = "{{ place.title }}";
-				url = '{{ place.local_url }}';
+				// title = "{{ place.title }}";
+				url = 'place/{{ place.local_url }}';
 				$.get(url + '/', function( data ) {
    					$( "#place_description" ).html( data );
    				});
@@ -66,25 +95,22 @@
 	
 	var map = L.map('window', {
 		center: new L.LatLng(centrelon, centrelat),
-		zoom: 14,
+		zoom: 13,
 		layers: [{% for layer in layers %} {{ layer|lower }},{% endfor %} watercolor],
 		zoomControl: false,
 	});
 	
-	// map.addLayer(watercolor);
-	// map.addLayer(streets);
-	
 	// Create layer overlay object
 	
 	var overlayMaps = {
-		{% for layer in layers %}"{{ layer }}": {{ layer|lower }},{% endfor %}
+		{% for layer in layers %}"{{ layer.description }}": {{ layer|lower }},{% endfor %}
 	};
 	
 	
 	// Add layer control
 	
 	L.control.layers(baseMaps, overlayMaps, {
-		collapsed: false, 
+		collapsed: true, 
 		position: 'bottomright'
 	}).addTo(map);
 	
@@ -93,6 +119,10 @@
 	L.control.zoom({
 		position: 'topright',
 	}).addTo(map);
+	
+	//$(document).ready(function() {
+	//	$('.leaflet-marker-icon').modal({ show: false});		
+	//});
 	
 </script>
 
