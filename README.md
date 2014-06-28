@@ -2,7 +2,8 @@
 local-links
 ===========
 
-A tool for mapping community-produced research about the things people value where they live built with Django, Leaflet.js and Twitter Bootstrap.
+A tool for mapping community-produced research about the things people value where they live. 
+Built with Django, Leaflet.js and Twitter Bootstrap.
 
 Requirements
 ============
