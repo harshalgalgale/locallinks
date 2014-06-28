@@ -1,5 +1,5 @@
 # ignore .DS_Store, all place photos & thumbnails, local database, .zip files
-.DS_Store
+*.DS_Store
 map.db
 media/img/asset_photos/*
 media/img/asset_thumbs/*
