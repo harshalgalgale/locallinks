@@ -18,16 +18,27 @@ class QuoteInline(admin.TabularInline):
 class ActivityInline(admin.TabularInline):
 	model = Activity
 
+
 class ActivityQuoteInline(admin.TabularInline):
 	model = ActivityQuote
-	fk_name = "place"
 	
-	"""def formfield_for_foreignkey(self, db_field, request, **kwargs):
-		place = request.META['PATH_INFO'].strip('/').split('/')[-1]
-		if db_field.name == 'activity':
-			kwargs["queryset"] = Activity.objects.filter(place=place)
-		return super(ActivityQuoteInline, self).formfield_for_foreignkey(db_field, request, **kwargs)"""
-
+	def formfield_for_dbfield(self, field, **kwargs):
+		if field.name == 'activity':
+			parent_place = self.get_object(kwargs['request'], Place)
+			activities = Activity.objects.filter(place=parent_place)
+			return forms.ModelChoiceField(queryset=activities)
+		return super(ActivityQuoteInline, self).formfield_for_dbfield(field, **kwargs)	
+	
+	def get_object(self, request, model):
+		"""A nasty hack to get the parent model instance"""
+		object_id = request.META['PATH_INFO'].strip('/').split('/')[-1]
+		try:
+			object_id = int(object_id)
+		except ValueError:
+			return None
+		return model.objects.get(pk=object_id)
+	
+	
 class PhotoInline(admin.TabularInline):
 	model = Photo
 

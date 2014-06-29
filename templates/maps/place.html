@@ -144,7 +144,7 @@
 				<img src="{% static 'img/image_placeholder.gif' %}" alt="{{ place.title }} thumbnail" class="img-thumbnail pull-left">
 				{% endif %}
 				<div class="media-body">	
-				<a href="../{{ i.local_url }}"><h4 class="media-heading">{{ i.title }}</h4></a>
+				<a href="{% url 'single' i.local_url %}"><h4 class="media-heading">{{ i.title }}</h4></a>
 				<p><em>{{ i.description }}</em></p>
 				</div>
 			</div>

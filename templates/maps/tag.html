@@ -123,9 +123,22 @@
 		position: 'topright',
 	}).addTo(map);
 	
-	//$(document).ready(function() {
-	//	$('.leaflet-marker-icon').modal({ show: false});		
-	//});
+	// Add 'show all places' button
+	
+	var ShowAll = L.Control.extend({
+    	options: {
+     	   position: 'bottomleft'
+    	},
+
+    	onAdd: function (map) {
+    	    // create the control container with a particular class name
+    	    this._div = L.DomUtil.create('div', 'showbutton');
+			this._div.innerHTML = '<a href="/" class="btn btn-primary btn-large">Show all places</a>';
+        	return this._div;
+    	}
+	});
+
+	map.addControl(new ShowAll());
 	
 </script>
 
